@@ -11,9 +11,18 @@
         margin-top: 50px;
       }
       button {
-        padding: 10px 20px;
+        padding: 12px 24px;
         font-size: 18px;
         cursor: pointer;
+        border: none;
+        background-color: #007bff;
+        color: white;
+        border-radius: 5px;
+        margin-top: 20px;
+        transition: background-color 0.3s;
+      }
+      button:hover {
+        background-color: #0056b3;
       }
       h1 {
         margin-bottom: 20px;
@@ -26,11 +35,32 @@
         margin: 10px 0;
         font-size: 20px;
       }
+      .hidden {
+        display: none;
+      }
+      .spinner {
+        margin: 20px auto;
+        border: 5px solid #f3f3f3;
+        border-radius: 50%;
+        border-top: 5px solid #007bff;
+        width: 40px;
+        height: 40px;
+        animation: spin 1s linear infinite;
+      }
+      @keyframes spin {
+        0% {
+          transform: rotate(0deg);
+        }
+        100% {
+          transform: rotate(360deg);
+        }
+      }
     </style>
   </head>
   <body>
     <h1>Twitter Trending Topic Scraper</h1>
     <button onclick="scrapeTrending()">Start Scraping</button>
+    <div class="spinner hidden" id="spinner"></div>
     <p id="status">Press the button to start scraping...</p>
     <div id="trends"></div>
 
@@ -38,30 +68,38 @@
       async function scrapeTrending() {
         const statusElement = document.getElementById("status");
         const trendsContainer = document.getElementById("trends");
+        const spinner = document.getElementById("spinner");
+
+        // Reset UI
         statusElement.innerText = "Scraping in progress...";
+        trendsContainer.innerHTML = "";
+        spinner.classList.remove("hidden");
 
         try {
           const response = await fetch(
             "https://x-5-trend-scrapper.onrender.com/scrape"
           );
           const data = await response.json();
+          spinner.classList.add("hidden");
 
           if (data.trends && data.trends.length > 0) {
             statusElement.innerText = "Scraping completed successfully!";
             trendsContainer.innerHTML = `
-                        <h3>Trending Topics</h3>
-                        <ul>
-                            ${data.trends
-                              .map((trend) => `<li>${trend}</li>`)
-                              .join("")}
-                        </ul>
-                    `;
+              <h3>Trending Topics</h3>
+              <ul>
+                ${data.trends.map((trend) => `<li>${trend}</li>`).join("")}
+              </ul>
+            `;
           } else {
-            statusElement.innerText = "No trends found.";
+            statusElement.innerText = "No trending topics found.";
           }
         } catch (error) {
-          statusElement.innerText = "Error fetching trends.";
+          spinner.classList.add("hidden");
+          statusElement.innerText = "Error fetching trends. Please try again.";
           console.error("Error:", error);
+          trendsContainer.innerHTML = `
+            <button onclick="scrapeTrending()">Retry Scraping</button>
+          `;
         }
       }
     </script>
